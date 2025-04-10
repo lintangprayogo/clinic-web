@@ -71,9 +71,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/orders/summary/{clinic_id}',[OrderController::class,'adminClinicSummary']);
 
-    Route::post('/xendit-callback', [OrderController::class, 'handleCallback']);
-
-
-
-
 });
+
+Route::post('/xendit-callback', [OrderController::class, 'handleCallback']);
+
