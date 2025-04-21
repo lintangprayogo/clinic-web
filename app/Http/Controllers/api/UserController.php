@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -90,7 +91,7 @@ class UserController extends Controller
 
         $user = User::where('email', $request->email)->first();
         //check user exist
-        if (!$user || !Hash::check($request->password,$user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response(['message' => 'Invalid credentials'], 401);
         }
 
@@ -102,6 +103,49 @@ class UserController extends Controller
             'access_token' => $token,
             'user' => $user,
         ], 200);
+    }
+
+    public function loginGoogle(Request $request)
+    {
+
+        $idToken = $request->id_token;
+        $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
+        $payload = $client->verifyIdToken($idToken);
+
+        if ($payload) {
+            $googleId = $payload['sub'];
+            $email = $payload['email'];
+            $name = $payload['name'];
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                $token = $user->createToken('auth_token')->plainTextToken;
+                return response()->json([
+                    'message' => 'Login success',
+                    'access_token' => $token,
+                    'user' => $user,
+                ], 200);
+            } else {
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => Hash::make('password'),
+                    'role' => 'user',
+                    'google_id' => $googleId
+                ]);
+            }
+            $token = $user->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                'message' => 'Login success',
+                'access_token' => $token,
+                'user' => $user,
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Invalid Google Id',
+            'status' => 'error'
+        ], 401);
     }
 
     public function logout(Request $request)

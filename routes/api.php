@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('login', [UserController::class, 'login']);
+Route::post('login/google', [UserController::class, 'loginGoogle']);
+//doctor routes
+Route::get('/doctors', [DoctorController::class, 'index']);
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/user/check', [UserController::class, 'checkUser']);
@@ -34,8 +37,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::put('/users/{id}', [UserController::class, 'update']);
 
 
-    //doctor routes
-    Route::get('/doctors', [DoctorController::class, 'index']);
+
 
     Route::post('/doctors', [DoctorController::class, 'store']);
 
